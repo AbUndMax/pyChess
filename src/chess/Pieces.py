@@ -27,7 +27,7 @@ class Piece(ABC):
         self.pos: Position = pos
         self.color: str = color
         self.img = tk.PhotoImage(file=img_path)
-        self.img_id = self.draw_piece()
+        self.item_id_on_board = board.draw_piece(self)
         self.moves: list[Position] = self._possible_moves()
 
 
@@ -43,18 +43,13 @@ class Piece(ABC):
         return moves
 
 
-    def move_to(self, pos: Position) -> bool:
+    def can_move(self, new_pos: Position) -> bool:
         """
-        movie this piece to pos if pos is a valid move
-        :param pos: position to move to
-        :return: True if move is valid, False otherwise
+        checks if a given position is a valid move for this piece
+        :param new_pos: the position to check
+        :return: True if the position is a valid move, False otherwise
         """
-        if pos in self.moves:
-            self.pos = pos
-            self.moves = self._possible_moves()
-            return True
-        return False
-
+        return new_pos in self.moves
 
     @abstractmethod
     def _calculate_moves(self) -> Iterator[Position]:
@@ -62,9 +57,19 @@ class Piece(ABC):
         ...
 
 
-    def draw_piece(self):
-        file_idx, rank_idx = self.pos.calculate_board_coords()
-        return self.board.create_image(file_idx, rank_idx, image=self.img, tags="piece")
+    def move_to(self, new_pos: Position):
+        """
+        update the position of this piece in the board and recalculate possible moves
+        :param new_pos:
+        :return:
+        """
+        # remove old position from board
+        del self.board.position_to_piece[self.pos]
+        # set new position in instance and board
+        self.pos = new_pos
+        self.board.position_to_piece[new_pos] = self
+        # recalculate possible moves
+        self.moves = self._possible_moves()
 
 
 

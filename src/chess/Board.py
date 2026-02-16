@@ -17,7 +17,8 @@ class Board(tk.Canvas):
         self.pack()
         self.draw_board()
 
-        self.piece_at: dict[Position, Piece] = {
+        self.id_to_piece: dict[int, Piece] = {}
+        self.position_to_piece: dict[Position, Piece] = {
             Position(0, 0): Rook(Position(0, 0), "w", self),
             Position(1, 0): Knight(Position(1, 0), "w", self),
             Position(2, 0): Bishop(Position(2, 0), "w", self),
@@ -57,13 +58,34 @@ class Board(tk.Canvas):
 
 
     def draw_board(self):
-        for file in range(FILE_SIZE):
-            for rank in range(RANK_SIZE):
-                tile_color = "white" if (file + rank) % 2 == 0 else "#333333"
-                self.create_rectangle(
-                    file * SQUARE_PX,
-                    rank * SQUARE_PX,
-                    (file + 1) * SQUARE_PX,
-                    (rank + 1) * SQUARE_PX,
-                    fill=tile_color
-                )
+        for file_idx in range(FILE_SIZE):
+            for rank_idx in range(RANK_SIZE):
+                tile_color = "white" if (file_idx + rank_idx) % 2 == 0 else "#333333"
+                self.create_rectangle(file_idx * SQUARE_PX,
+                                      rank_idx * SQUARE_PX,
+                                      (file_idx + 1) * SQUARE_PX,
+                                      (rank_idx + 1) * SQUARE_PX,
+                                      fill=tile_color)
+
+
+    def draw_piece(self, piece: Piece):
+        file_idx, rank_idx = piece.pos.calculate_board_coords()
+        img_id = self.create_image(file_idx, rank_idx, image=piece.img, tags="piece")
+        self.id_to_piece[img_id] = piece
+        return img_id
+
+
+    def draw_possible_moves(self, piece: Piece):
+        for pos in piece.moves:
+            x, y = pos.calculate_board_coords()
+            for half_edge in [SQUARE_PX / 2 * 0.3, SQUARE_PX / 2 * 0.2]:
+                self.create_oval(x - half_edge,
+                                 y - half_edge,
+                                 (x + half_edge),
+                                 (y + half_edge),
+                                 fill="#0010bb",
+                                 tags="possible_move")
+
+
+    def clear_possible_moves(self):
+        self.delete("possible_move")
