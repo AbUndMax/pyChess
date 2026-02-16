@@ -27,7 +27,7 @@ class Piece(ABC):
         self.pos: Position = pos
         self.color: str = color
         self.img = tk.PhotoImage(file=img_path)
-        self.img_id = self.draw_piece(self.img)
+        self.img_id = self.draw_piece()
         self.moves: list[Position] = self._possible_moves()
 
 
@@ -62,9 +62,9 @@ class Piece(ABC):
         ...
 
 
-    def draw_piece(self, img):
+    def draw_piece(self):
         file_idx, rank_idx = self.pos.calculate_board_coords()
-        return self.board.create_image(file_idx, rank_idx, image=img, tags="piece")
+        return self.board.create_image(file_idx, rank_idx, image=self.img, tags="piece")
 
 
 
