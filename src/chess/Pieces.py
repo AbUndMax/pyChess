@@ -63,8 +63,8 @@ class Piece(ABC):
 
 
     def draw_piece(self, img):
-        x, y = self.pos.pos_on_canvas()
-        return self.board.create_image(x, y, image=img)
+        file_idx, rank_idx = self.pos.calculate_board_coords()
+        return self.board.create_image(file_idx, rank_idx, image=img, tags="piece")
 
 
 
@@ -79,7 +79,7 @@ class King(Piece):
     def _calculate_moves(self):
         step = 1
         for dx, dy in self.directions:
-            yield Position(self.pos.x + dx * step, self.pos.y + dy * step)
+            yield Position(self.pos.file_idx + dx * step, self.pos.rank_idx + dy * step)
 
 
 
@@ -93,7 +93,7 @@ class Queen(Piece):
     def _calculate_moves(self):
         for step in range(0, max(FILE_SIZE, RANK_SIZE)):
             for dx, dy in self.directions:
-                yield Position(self.pos.x + dx * step, self.pos.y + dy * step)
+                yield Position(self.pos.file_idx + dx * step, self.pos.rank_idx + dy * step)
 
 
 
@@ -107,7 +107,7 @@ class Bishop(Piece):
     def _calculate_moves(self):
         step = max(FILE_SIZE, RANK_SIZE)
         for dx, dy in self.directions:
-            yield Position(self.pos.x + dx * step, self.pos.y + dy)
+            yield Position(self.pos.file_idx + dx * step, self.pos.rank_idx + dy)
 
 
 
@@ -122,7 +122,7 @@ class Knight(Piece):
         step = 2
         for dx, dy in self.directions:
             for i in (1, -1):
-                yield Position(self.pos.x + dx * step + i * dy, self.pos.y + dy * step + i * dx)
+                yield Position(self.pos.file_idx + dx * step + i * dy, self.pos.rank_idx + dy * step + i * dx)
 
 
 
@@ -136,7 +136,7 @@ class Rook(Piece):
     def _calculate_moves(self) -> Iterator[Position]:
         for step in range(0, max(FILE_SIZE, RANK_SIZE)):
             for dx, dy in self.directions:
-                yield Position(self.pos.x + dx * step, self.pos.y + dy * step)
+                yield Position(self.pos.file_idx + dx * step, self.pos.rank_idx + dy * step)
 
 
 
@@ -148,7 +148,8 @@ class Pawn(Piece):
         super().__init__(pos, color, board, img_path)
 
     def _calculate_moves(self) -> Iterator[Position]:
-        steps = [1, 2] if self.pos.y == 1 else [1]
+        #TODO conditional steps since pawns can only clash sideways
+        steps = [1, 2] if self.pos.rank_idx == 1 else [1]
         for step in steps:
             for dx, dy in self.directions:
-                yield Position(self.pos.x + dx * step, self.pos.y + dy * step)
+                yield Position(self.pos.file_idx + dx * step, self.pos.rank_idx + dy * step)

@@ -2,6 +2,7 @@ from chess.Pieces import *
 from chess.Position import Position
 import tkinter as tk
 from Constants import FILE_SIZE, RANK_SIZE, SQUARE_PX, BOARD_FILE_PX, BOARD_RANK_PX
+from BoardController import BoardController
 
 
 class Board(tk.Canvas):
@@ -16,7 +17,7 @@ class Board(tk.Canvas):
         self.pack()
         self.draw_board()
 
-        self.piece_positions: dict[Position, Piece] = {
+        self.piece_at: dict[Position, Piece] = {
             Position(0, 0): Rook(Position(0, 0), "w", self),
             Position(1, 0): Knight(Position(1, 0), "w", self),
             Position(2, 0): Bishop(Position(2, 0), "w", self),
@@ -51,6 +52,8 @@ class Board(tk.Canvas):
             Position(6, 6): Pawn(Position(6, 6), "b", self),
             Position(7, 6): Pawn(Position(7, 6), "b", self)
         }
+
+        self.controller = BoardController(self)
 
 
     def draw_board(self):
