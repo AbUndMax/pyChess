@@ -110,9 +110,9 @@ class Bishop(Piece):
         super().__init__(pos, color, board, img_path)
 
     def _calculate_moves(self):
-        step = max(FILE_SIZE, RANK_SIZE)
-        for dx, dy in self.directions:
-            yield Position(self.pos.file_idx + dx * step, self.pos.rank_idx + dy)
+        for step in range(0, max(FILE_SIZE, RANK_SIZE)):
+            for dx, dy in self.directions:
+                yield Position(self.pos.file_idx + dx * step, self.pos.rank_idx + dy * step)
 
 
 
