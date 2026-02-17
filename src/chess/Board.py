@@ -53,6 +53,8 @@ class Board(tk.Canvas):
             Position(6, 6): Pawn(Position(6, 6), "b", self),
             Position(7, 6): Pawn(Position(7, 6), "b", self)
         }
+        self.black_captured_pieces = []
+        self.white_captured_pieces = []
 
         self.controller = BoardController(self)
 
@@ -68,7 +70,7 @@ class Board(tk.Canvas):
                                       fill=tile_color)
 
 
-    def draw_piece(self, piece: Piece):
+    def draw_piece(self, piece: Piece) -> int:
         file_idx, rank_idx = piece.pos.calculate_board_coords()
         img_id = self.create_image(file_idx, rank_idx, image=piece.img, tags="piece")
         self.id_to_piece[img_id] = piece
@@ -89,3 +91,25 @@ class Board(tk.Canvas):
 
     def clear_possible_moves(self):
         self.delete("possible_move")
+
+
+    def is_free(self, pos: Position) -> bool:
+        return pos not in self.position_to_piece
+
+
+    def pos_occupied_by(self, pos: Position) -> Piece:
+        return self.position_to_piece.get(pos)
+
+    def capture_piece(self, pos: Position):
+        piece = self.pos_occupied_by(pos)
+
+        # delete piece visually
+        self.delete(piece.item_id_on_board)
+
+        # add piece to the respective capture list
+        self.white_captured_pieces.append(piece) if piece.color == "w" \
+            else self.black_captured_pieces.append(piece)
+
+        # delete piece from board
+        del self.id_to_piece[piece.item_id_on_board]
+        del self.position_to_piece[piece.pos]
