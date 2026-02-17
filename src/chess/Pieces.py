@@ -49,16 +49,13 @@ class Piece(ABC):
         if not new_pos.in_bounds():
             return 0
 
-        occupying_piece = self.board.pos_occupied_by(new_pos)
+        if occupying_piece := self.board.pos_occupied_by(new_pos):
+            if occupying_piece.color == self.color:
+                return 0
+            if occupying_piece.color != self.color:
+                return 2
 
-        if occupying_piece is None:
-            return 1
-
-        if occupying_piece.color == self.color:
-            return 0
-
-        return 2
-
+        return 1
 
     def can_move(self, new_pos: Position) -> bool:
         """
@@ -226,13 +223,8 @@ class Pawn(Piece):
             for step in steps:
                 new_pos = Position(self.pos.file_idx + dx * step, self.pos.rank_idx + dy * step)
 
-                if not new_pos.in_bounds():
-                    break
-
-                if self.board.pos_occupied_by(new_pos) is not None:
-                    break
-
-                moves.append(new_pos)
+                if self.new_pos_possible(new_pos) == 1:
+                    moves.append(new_pos)
 
         for dx, dy in self.capture_directions:
             new_pos = Position(self.pos.file_idx + dx, self.pos.rank_idx + dy)
