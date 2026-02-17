@@ -6,6 +6,7 @@ Chess game written in python using tkinter.
 Aim functionality:
 - Move pieces ✓
 - reverse button
+- click piece, click destination logic
 - Show possible moves ✓
 - remove pieces from board ✓
 - start new game

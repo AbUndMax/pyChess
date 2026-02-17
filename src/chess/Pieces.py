@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Iterable
 
 from Constants import RANK_SIZE, FILE_SIZE, IMG_PATHS
 from chess.Position import Position
@@ -32,8 +33,8 @@ class Piece(ABC):
 
 
     @property
-    def moves(self) -> list[Position]:
-        return self._calculate_moves()
+    def moves(self) -> Iterable[Position]:
+        yield from self._calculate_moves()
 
 
     def new_pos_possible(self, new_pos: Position):
@@ -67,27 +68,24 @@ class Piece(ABC):
 
 
     @abstractmethod
-    def _calculate_moves(self) -> list[Position]:
+    def _calculate_moves(self) -> Iterable[Position]:
         """yield candidate move for this piece in current position"""
         ...
 
 
-    def _calculate_ray_moves(self, directions):
+    def _calculate_ray_moves(self, directions) -> Iterable[Position]:
         """
-        Calculates potential moves for a piece based on a set of directions.
+        Calculates possible ray moves based on the provided directions. A ray move represents a
+        continuous movement in a given direction until an obstruction or limit is encountered.
+        The function stops generating moves in a particular direction when it encounters a position
+        that is either blocked by a piece of the same color, goes out of bounds, or results in a
+        capture.
 
-        Given a set of directions represented as tuples of (dx, dy), this method iterates
-        through each direction to calculate all possible positions a piece can move along
-        the specified rays until blocked, out of bounds, or a capture is encountered.
-
-        :param directions: A list of tuples representing the directions in which
-                           the piece can move.
-        :type directions: list[tuple[int, int]]
-        :return: A list of Position objects representing all valid moves calculated
-                 along the ray directions.
-        :rtype: list[Position]
+        :param directions: Iterable of tuples, where each tuple represents a direction as (dx, dy),
+                           indicating changes in file and rank, respectively.
+        :return: Iterable of `Position` objects corresponding to valid ray moves in the specified
+                 directions.
         """
-        moves = []
         for dx, dy in directions:
             for step in range(1, max(FILE_SIZE, RANK_SIZE)):
                 new_pos = Position(self.pos.file_idx + dx * step, self.pos.rank_idx + dy * step)
@@ -95,16 +93,22 @@ class Piece(ABC):
                 possible_code = self.new_pos_possible(new_pos)
                 match possible_code:
                     case 0: # blocked by own color / out of bounds
-                        break
+                        break # end pos search in this direction
                     case 1: # free
-                        moves.append(new_pos)
-                    case 2: # capture
-                        moves.append(new_pos)
+                        yield new_pos
+                    case 2: # capture -> add capture move and end search in this direction
+                        yield new_pos
                         break
-        return moves
 
 
     def can_capture(self, pos_to_capture: Position) -> bool:
+        """
+        Determines if a capture is possible at the specified position. A capture is only valid if the
+        position is occupied by a piece of a different color.
+
+        :param pos_to_capture: The position to check for a possible capture.
+        :return: True if the position is occupied by an opponent's piece and can be captured, otherwise False.
+        """
         occupant = self.board.pos_occupied_by(pos_to_capture)
         return occupant is not None and occupant.color != self.color
 
@@ -136,17 +140,13 @@ class King(Piece):
         img_path = IMG_PATHS[color + "K"]
         super().__init__(pos, color, board, img_path)
 
-    def _calculate_moves(self):
-        moves = []
+    def _calculate_moves(self) -> Iterable[Position]:
         step = 1
         for dx, dy in self.directions:
             new_pos = Position(self.pos.file_idx + dx * step, self.pos.rank_idx + dy * step)
 
             if self.new_pos_possible(new_pos):
-                moves.append(new_pos)
-
-        return moves
-
+                yield new_pos
 
 
 class Queen(Piece):
@@ -156,10 +156,8 @@ class Queen(Piece):
         img_path = IMG_PATHS[color + "Q"]
         super().__init__(pos, color, board, img_path)
 
-    def _calculate_moves(self):
-        return self._calculate_ray_moves(self.directions)
-
-
+    def _calculate_moves(self) -> Iterable[Position]:
+        yield from self._calculate_ray_moves(self.directions)
 
 
 class Bishop(Piece):
@@ -169,8 +167,8 @@ class Bishop(Piece):
         img_path = IMG_PATHS[color + "B"]
         super().__init__(pos, color, board, img_path)
 
-    def _calculate_moves(self):
-        return self._calculate_ray_moves(self.directions)
+    def _calculate_moves(self) -> Iterable[Position]:
+        yield from self._calculate_ray_moves(self.directions)
 
 
 
@@ -181,16 +179,13 @@ class Knight(Piece):
         img_path = IMG_PATHS[color + "N"]
         super().__init__(pos, color, board, img_path)
 
-    def _calculate_moves(self):
-        moves = []
+    def _calculate_moves(self) -> Iterable[Position]:
         step = 2
         for dx, dy in self.directions:
             for i in (1, -1):
                 new_pos = Position(self.pos.file_idx + dx * step + i * dy, self.pos.rank_idx + dy * step + i * dx)
                 if self.new_pos_possible(new_pos):
-                    moves.append(new_pos)
-
-        return moves
+                    yield new_pos
 
 
 
@@ -201,8 +196,8 @@ class Rook(Piece):
         img_path = IMG_PATHS[color + "R"]
         super().__init__(pos, color, board, img_path)
 
-    def _calculate_moves(self) -> list[Position]:
-        return self._calculate_ray_moves(self.directions)
+    def _calculate_moves(self) -> Iterable[Position]:
+        yield from self._calculate_ray_moves(self.directions)
 
 
 
@@ -215,20 +210,16 @@ class Pawn(Piece):
         img_path = IMG_PATHS[color + "P"]
         super().__init__(pos, color, board, img_path)
 
-    def _calculate_moves(self) -> list[Position]:
-        #TODO conditional steps since pawns can only clash sideways
-        moves = []
+    def _calculate_moves(self) -> Iterable[Position]:
         steps = [1, 2] if self.in_start_pos else [1]
         for dx, dy in self.directions:
             for step in steps:
                 new_pos = Position(self.pos.file_idx + dx * step, self.pos.rank_idx + dy * step)
 
                 if self.new_pos_possible(new_pos) == 1:
-                    moves.append(new_pos)
+                    yield new_pos
 
         for dx, dy in self.capture_directions:
             new_pos = Position(self.pos.file_idx + dx, self.pos.rank_idx + dy)
             if self.can_capture(new_pos):
-                moves.append(new_pos)
-
-        return moves
+                yield new_pos
