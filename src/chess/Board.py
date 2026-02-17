@@ -117,13 +117,14 @@ class Board(tk.Canvas):
         """
         for pos in piece.moves:
             x, y = pos.calculate_board_coords()
-            for half_edge in [SQUARE_PX / 2 * 0.3, SQUARE_PX / 2 * 0.2]:
+            for half_edge, color in zip([SQUARE_PX / 2 * 0.3, SQUARE_PX / 2 * 0.2], ["#73B2D9", "#C3DEEF"]):
                 self.create_oval(x - half_edge,
                                  y - half_edge,
                                  (x + half_edge),
                                  (y + half_edge),
-                                 fill="#0010bb",
-                                 tags="possible_move")
+                                 fill=color,
+                                 tags="possible_move",
+                                 outline="")
 
 
     def clear_possible_moves(self):
