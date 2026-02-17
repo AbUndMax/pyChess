@@ -11,7 +11,7 @@ Aim functionality:
 - remove pieces from board ✓
 - start new game
 - give piece back if pawn reaches end
-- move order white -> black
+- move order white -> black ✓
 
 Optional functionalities that might come
 - save & load game

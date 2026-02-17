@@ -59,6 +59,7 @@ class Board(tk.Canvas):
         # Lists for storing captured pieces
         self.black_captured_pieces = []
         self.white_captured_pieces = []
+        self.current_turn = "w"
 
         self.controller = BoardController(self)
 

@@ -38,6 +38,13 @@ class BoardController:
 
         self.drag_item_id = items[0]
         self.piece = self.board.id_to_piece[self.drag_item_id]
+
+        # check if it's the current player's turn
+        if self.piece.color != self.board.current_turn:
+            self.drag_item_id = None
+            self.piece = None
+            return
+
         self.board.draw_possible_moves(self.piece)
         self.board.tag_raise(self.drag_item_id)
 
@@ -92,6 +99,9 @@ class BoardController:
             self.board.coords(self.drag_item_id, square_center_x, square_center_y)
             # update the piece's position in the board'
             self.piece.move_to(square_pos)
+
+            # update turn
+            self.board.current_turn = "b" if self.board.current_turn == "w" else "w"
 
         else:
             # snap back to original position
