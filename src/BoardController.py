@@ -89,6 +89,9 @@ class BoardController:
             was dropped.
         :return: None
         """
+        if not self.drag_item_id:
+            return
+
         # calculate the idx of the square the piece was dropped on
         square_pos = calculate_position(event.x, event.y)
 

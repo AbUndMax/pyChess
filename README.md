@@ -5,16 +5,18 @@ Chess game written in python using tkinter.
 
 Aim functionality:
 - Move pieces ✓
-- reverse button
-- click piece, click destination logic
 - Show possible moves ✓
 - remove pieces from board ✓
+- move order white -> black ✓
+- win screen & restart ✓
 - start new game
 - give piece back if pawn reaches end
-- move order white -> black ✓
+- castling
 
 Optional functionalities that might come
+- click piece, click destination logic
 - save & load game
+- reverse button
 - Track moves
 - Checkmate
 - play vs AI

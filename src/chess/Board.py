@@ -3,17 +3,19 @@ from chess.Position import Position
 import tkinter as tk
 from Constants import FILE_SIZE, RANK_SIZE, SQUARE_PX, BOARD_FILE_PX, BOARD_RANK_PX
 from BoardController import BoardController
+from Dialog import GameOver
 
 
 class Board(tk.Canvas):
 
-    def __init__(self, master):
+    def __init__(self, master, restart_callback):
         super().__init__(
             master,
             width=BOARD_FILE_PX - 3,
             height=BOARD_RANK_PX - 3,
             # minus 3 because there are some weird additional pixels on bottom and right. -3 perfectly cuts them off
         )
+        self.restart_callback = restart_callback
         self.pack()
         self.draw_board()
 
@@ -178,3 +180,6 @@ class Board(tk.Canvas):
         # delete piece from board
         del self.id_to_piece[piece.item_id_on_board]
         del self.position_to_piece[piece.pos]
+
+        if isinstance(piece, King):
+            GameOver(self.master, self.current_turn, self.restart_callback)
